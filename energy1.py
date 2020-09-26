@@ -15,23 +15,24 @@ def open_weights():
         w_d.append(d)
     w_d = dict(w_d)
     return w_d
+
+
 def open_text(d):
-    # ринимает аргументом адрес текстового документа, возвращает
-    #  количество строк в документе и значение
+    '''принимает аргументом адрес текстового документа, возвращает
+      количество строк в документе и значение'''
     n = 1
     session = open(d)
-    Es = [0, 0]  # приращение энергии
 
     for row in session:
         n += 1
-        sq_v=[0,0]
-        if 20< n:
-            v=[]
+        sq_v = [0, 0]
+        if 20 < n:
+            v = []
 
             m = list(row.split())
             v.append(float(m[1]))
             v.append(float(m[2]))
-            sq_v[0] += abs(v[0] ** 2) / 2 #  - mАргумент массы из файла весоы
+            sq_v[0] += abs(v[0] ** 2) / 2  # - mАргумент массы из файла весоы
             sq_v[1] += abs(v[1] ** 2) / 2
 
     return sq_v
@@ -45,11 +46,6 @@ def beat():
     for i in os.listdir(pach):  # где i так же имя испытуемого или иная папка
         if os.path.isdir(pach + '\\' + i):
             j.append(i)
-    print(j)
-
-    print(d, type(d) , )
-
-
     r_s = []  # Список участников с информацией о весе
     for i in j:
         if i in d.keys():
@@ -59,27 +55,31 @@ def beat():
             print(i, '- нет информации о весе учачтника эксперемента')
     result = dict()
     for j in r_s:
+
         user = pach + '\\' + j  # Папака участника с сессиями
+
         for k in os.listdir(user):
             if k == 'vel':
-                user_vel = user+'\\' + k
-                print(j,k)
-                result[j]=dict()
+                user_vel = user + '\\' + k
+                result[j] = dict()
                 for i in os.listdir(user_vel):
                     '''проработать и выделить номер'''
 
-                    user_ses=user_vel+'\\'+i # где i - хранит в себе имя участника и номер сессии участника
-                    n=i.split()
-                    n1=n[1].split('.')
-                    nom_ses=n1[0]
+                    user_ses = user_vel + '\\' + i  # где i - хранит в себе имя участника и номер сессии участника
+                    #n = i.split()
+                    #n1 = n[1].split('.')
+                    nom_ses = int(i[-5])
                     sq_v = list(open_text(user_ses))
-                    res=[]
+                    res = []
                     for v in sq_v:
-                        res.append(v*float(d[j]))
-                    result[j][nom_ses]=res
-                    print(result)
+                        res.append(v * float(d[j]))
+                        result[j][nom_ses] = res
+    print(result)
     return result
+
+
 print(beat())
+
 
 def f_row():
     title = []
@@ -98,18 +98,11 @@ def f_row():
         title.append(t)
         title.append(tt)
     return title
-print(f_row())
-
-#+++++++++++++++++++++++++++++++++++++++++++==
 
 
 result = beat()
-# создаем новый excel-файл
 wb = openpyxl.Workbook()
-
-# добавляем новый лист
 wb.create_sheet(title='Первый лист', index=0)
-# получаем лист, с которым будем работать
 sheet = wb['Первый лист']
 t = f_row()
 for col, name in zip(range(2, 20), t):
@@ -118,13 +111,11 @@ for col, name in zip(range(2, 20), t):
 for row, word in zip(range(2, 20), result.keys()):
     cell = sheet.cell(row=row, column=1)
     cell.value = word
-    for col, num in zip(range(2, 20, 2), result[word].keys()):
+    for col, num in zip(range(2, 20, 2), range(1,9)):
         cell = sheet.cell(row=row, column=col)
-        cell.value = result[word][num][0][0]
+        cell.value = result[word][num][0]
         col += 1
         cell = sheet.cell(row=row, column=col)
-        cell.value = result[word][num][0][1]
+        cell.value = result[word][num][1]
 
-wb.save('example.xlsx')
-
-
+wb.save('example1.xlsx')
