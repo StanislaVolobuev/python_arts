@@ -6,49 +6,51 @@ def open_weights():
     '''преобразует текстовый документ весов в словарь весов,
     возращая значения в виде словаря w_d'''
     weights = open(r'D:\data\weights.txt')
-    w_d = []
+    weights_dict = dict()
+    i = 0
     for row in weights:
-        d = str(row)
-        d = d.split()
-        d.pop(1)
-        d.pop(2)
-        w_d.append(d)
-    w_d = dict(w_d)
-    return w_d
+        if i == 0:
+            print(type(row))
+        d = row.split()
+        i += 1
+        weights_dict[d[0]] = d[2]
+    return weights_dict
 
 
 def open_text(d):
     '''принимает аргументом адрес текстового документа, возвращает
       количество строк в документе и значение'''
-    n = 1
+    n = 0
     session = open(d)
-
+    sq_v = [0, 0]
+    m = [0, 0, 0]
     for row in session:
         n += 1
-        sq_v = [0, 0]
-        if 20 < n:
-            v = []
 
-            m = list(row.split())
-            v.append(float(m[1]))
-            v.append(float(m[2]))
-            sq_v[0] += abs(v[0] ** 2) / 2  # - mАргумент массы из файла весоы
-            sq_v[1] += abs(v[1] ** 2) / 2
+
+        if 19 < n:
+            v = []
+            m1 = list(row.split())
+            v.append(float(m1[1]) - float(m[1]))
+            v.append(float(m1[2]) - float(m[2]))
+            m = m1
+            sq_v[0] += (v[0] ** 2) / 2  # - mАргумент массы из файла весоы
+            sq_v[1] += (v[1] ** 2) / 2
 
     return sq_v
 
 
 def beat():
-    d = open_weights()
+    weights_dict = open_weights()
 
-    pach = r'D:\data'
+    path = r'D:\data'
     j = []
-    for i in os.listdir(pach):  # где i так же имя испытуемого или иная папка
-        if os.path.isdir(pach + '\\' + i):
+    for i in os.listdir(path):  # где i так же имя испытуемого или иная папка
+        if os.path.isdir(path + '\\' + i):
             j.append(i)
     r_s = []  # Список участников с информацией о весе
     for i in j:
-        if i in d.keys():
+        if i in weights_dict.keys():
             print(i)
             r_s.append(i)
         else:
@@ -56,66 +58,63 @@ def beat():
     result = dict()
     for j in r_s:
 
-        user = pach + '\\' + j  # Папака участника с сессиями
+        user = path + '\\' + j  # Папака участника с сессиями
 
         for k in os.listdir(user):
             if k == 'vel':
                 user_vel = user + '\\' + k
                 result[j] = dict()
                 for i in os.listdir(user_vel):
-                    '''проработать и выделить номер'''
 
                     user_ses = user_vel + '\\' + i  # где i - хранит в себе имя участника и номер сессии участника
-                    #n = i.split()
-                    #n1 = n[1].split('.')
                     nom_ses = int(i[-5])
                     sq_v = list(open_text(user_ses))
                     res = []
                     for v in sq_v:
-                        res.append(v * float(d[j]))
+                        res.append(v * float(weights_dict[j]))
                         result[j][nom_ses] = res
     print(result)
     return result
 
 
-print(beat())
-
-
-def f_row():
-    title = []
+result = beat()
+num_sessions=result['Irina'].__len__()
+print(num_sessions)
+def head_row(num_sessions):  # (num_sessions):
+    row_head = []
     x = '_X_'
     y = '_Y_'
 
-    for nom in range(8):
-        t = "En" + x + 'raw_00' + str(nom + 1)
-        tt = "En" + y + 'raw_00' + str(nom + 1)
-        if nom % 2 == 0:
+    for num in range(num_sessions):  # range(num_sessions.__len__()):
+        t = "En" + x + 'raw_00' + str(num + 1)
+        tt = "En" + y + 'raw_00' + str(num + 1)
+        if num % 2 == 0:
             t = t + 'EC'
             tt = tt + 'EC'
         else:
             t = t + 'EO'
             tt = tt + 'EO'
-        title.append(t)
-        title.append(tt)
-    return title
+        row_head.append(t)
+        row_head.append(tt)
+    return row_head
 
 
-result = beat()
 wb = openpyxl.Workbook()
 wb.create_sheet(title='Первый лист', index=0)
 sheet = wb['Первый лист']
-t = f_row()
-for col, name in zip(range(2, 20), t):
+row_head = head_row(num_sessions)
+for col, name in zip(range(2, num_sessions*2+2), row_head):
     cell = sheet.cell(row=1, column=col)
     cell.value = name
-for row, word in zip(range(2, 20), result.keys()):
+for row, key in zip(range(2, num_sessions*2+2), result.keys()):
     cell = sheet.cell(row=row, column=1)
-    cell.value = word
-    for col, num in zip(range(2, 20, 2), range(1,9)):
+    cell.value = key
+    for col, num in zip(range(2, num_sessions*2+2, 2), range(1, num_sessions+1)):  # num - номер сессии
         cell = sheet.cell(row=row, column=col)
-        cell.value = result[word][num][0]
+        cell.value = result[key][num][0]
         col += 1
         cell = sheet.cell(row=row, column=col)
-        cell.value = result[word][num][1]
+        cell.value = result[key][num][1]
 
-wb.save('example1.xlsx')
+wb.save('example4.xlsx')
+
